@@ -1,25 +1,52 @@
-terraform {
-  required_providers {
-    azurerm = {
-      source = "hashicorp/azurerm"
-      version = "3.105.0"
-    }
+# Create resource group
+resource "azurerm_resource_group" "main" {
+  name     = var.resource_group_name
+  location = var.location
+}
+
+# Create storage account
+resource "azurerm_storage_account" "main" {
+  name                     = var.storage_account_name
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = azurerm_resource_group.main.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "test"
+    project     = "terraform-task2"
   }
 }
 
-provider "azurerm" {
-  features {}
+# Create storage container
+resource "azurerm_storage_container" "main" {
+  name                  = var.container_name
+  storage_account_name  = azurerm_storage_account.main.name
+  container_access_type = "private"
 }
 
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
+# Create local directory for content
+resource "local_file" "example_content" {
+  filename = "${var.archive_source_dir}/example.txt"
+  content  = "This is example content for Terraform task 2"
 }
 
-resource "azurerm_storage_account" "example" {
-  name                     = "examplestorageacc"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+# Create archive of the directory
+data "archive_file" "content_archive" {
+  type        = "zip"
+  source_dir  = var.archive_source_dir
+  output_path = "./content.zip"
+
+  depends_on = [local_file.example_content]
+}
+
+# Create blob from archive
+resource "azurerm_storage_blob" "main" {
+  name                   = var.blob_name
+  storage_account_name   = azurerm_storage_account.main.name
+  storage_container_name = azurerm_storage_container.main.name
+  type                   = "Block"
+  source                 = data.archive_file.content_archive.output_path
+
+  depends_on = [data.archive_file.content_archive]
 }
