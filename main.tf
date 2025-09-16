@@ -25,25 +25,33 @@ resource "azurerm_storage_container" "main" {
   container_access_type = "private"
 }
 
+# Create archive file from directory
+data "archive_file" "content" {
+  type        = "zip"
+  source_dir  = var.archive_source_dir
+  output_path = "${var.archive_source_dir}.zip"
+}
+
 # Create blob with archived content
 resource "azurerm_storage_blob" "main" {
   name                   = var.blob_name
   storage_account_name   = azurerm_storage_account.main.name
   storage_container_name = azurerm_storage_container.main.name
   type                   = "Block"
-  source_content         = var.blob_content
+  source                 = data.archive_file.content.output_path  # Використання архіву
 
-  # Archive the blob
   metadata = {
-    archived = "true"
+    archived    = "true"
+    source_dir  = var.archive_source_dir
+    created_by  = "terraform"
   }
 }
 
-# Create archive directory structure
-resource "azurerm_storage_blob" "archive" {
-  name                   = "archive/${var.blob_name}"
+# Create additional blob with text content
+resource "azurerm_storage_blob" "example" {
+  name                   = "example.txt"
   storage_account_name   = azurerm_storage_account.main.name
   storage_container_name = azurerm_storage_container.main.name
   type                   = "Block"
-  source_content         = "Archived: ${var.blob_content}"
+  source_content         = var.blob_content
 }

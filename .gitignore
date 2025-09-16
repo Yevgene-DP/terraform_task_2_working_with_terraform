@@ -19,5 +19,8 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-# Terraplan plan files
+# Terraform plan files
 *.tfplan
+
+# Ignore generated archive files (but keep content directory)
+*.zip
