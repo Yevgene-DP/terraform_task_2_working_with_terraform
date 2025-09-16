@@ -25,28 +25,25 @@ resource "azurerm_storage_container" "main" {
   container_access_type = "private"
 }
 
-# Create local directory for content
-resource "local_file" "example_content" {
-  filename = "${var.archive_source_dir}/example.txt"
-  content  = "This is example content for Terraform task 2"
-}
-
-# Create archive of the directory
-data "archive_file" "content_archive" {
-  type        = "zip"
-  source_dir  = var.archive_source_dir
-  output_path = "./content.zip"
-
-  depends_on = [local_file.example_content]
-}
-
-# Create blob from archive
+# Create blob with archived content
 resource "azurerm_storage_blob" "main" {
   name                   = var.blob_name
   storage_account_name   = azurerm_storage_account.main.name
   storage_container_name = azurerm_storage_container.main.name
   type                   = "Block"
-  source                 = data.archive_file.content_archive.output_path
+  source_content         = var.blob_content
 
-  depends_on = [data.archive_file.content_archive]
+  # Archive the blob
+  metadata = {
+    archived = "true"
+  }
+}
+
+# Create archive directory structure
+resource "azurerm_storage_blob" "archive" {
+  name                   = "archive/${var.blob_name}"
+  storage_account_name   = azurerm_storage_account.main.name
+  storage_container_name = azurerm_storage_container.main.name
+  type                   = "Block"
+  source_content         = "Archived: ${var.blob_content}"
 }

@@ -8,6 +8,16 @@ output "blob_url" {
   value       = azurerm_storage_blob.main.url
 }
 
+output "archive_blob_id" {
+  description = "The ID of the archived blob"
+  value       = azurerm_storage_blob.archive.id
+}
+
+output "archive_blob_url" {
+  description = "The URL of the archived blob"
+  value       = azurerm_storage_blob.archive.url
+}
+
 output "storage_account_name" {
   description = "The name of the storage account"
   value       = azurerm_storage_account.main.name

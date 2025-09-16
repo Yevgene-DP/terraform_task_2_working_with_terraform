@@ -5,7 +5,7 @@ variable "resource_group_name" {
 }
 
 variable "location" {
-  description = "The Azure region where resources will be created"
+  description = "The Azure region to deploy resources"
   type        = string
   default     = "West Europe"
 }
@@ -28,8 +28,8 @@ variable "blob_name" {
   default     = "example.txt"
 }
 
-variable "archive_source_dir" {
-  description = "The directory to archive"
+variable "blob_content" {
+  description = "The content of the blob"
   type        = string
-  default     = "./content"
+  default     = "Hello, Terraform Task 2!"
 }
